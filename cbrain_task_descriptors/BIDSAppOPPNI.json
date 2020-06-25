@@ -4,7 +4,7 @@
     "schema-version": "0.5",
     "description": "Boutique JSON Descriptor for OPPNI.",
     "author":"L. Mark Prati,  Strother Lab, Baycrest",
-    "command-line": "Xvfb :88 -screen 0 1024x768x24 >/dev/null 2>&1 & sleep 4; export DISPLAY=':88'; python3 [OPPNI_LOCATION] [BIDS_DIR] [OUTPUT_DIR] [ANALYSIS_LEVEL] [PARTICIPANT_LABEL] [TASK_NAME] [ENVIRONMENT] -c pipeline_file.txt -r Sample_reference.nii [ANALYSIS_TYPE] [ANALYSIS_TYPE_ADJUSTMENTS] [TPATTERN] [PART] [CONVOLVE] [METRIC] [CONTRAST] [VASC_MASK] [NUM_PCS] [KEEPMEAN] [VOXEL_SIZE] [BLURTOFWHM] [DEOBLIQUE] [CONTROL_MOTION_ARTIFACT] [CONTROL_WM_BIAS] [OUPUT_NII_ALSO] --run_locally; status=$?;  kill %1 ; (exit $status)",
+    "command-line": "Xvfb :88 -screen 0 1024x768x24 >/dev/null 2>&1 & sleep 4; export DISPLAY=':88'; mkdir -p [OUTPUT_DIR]; python3 /oppni/oppni.py [BIDS_DIR] [OUTPUT_DIR] [ANALYSIS_LEVEL] [PARTICIPANT_LABEL] [TASK_NAME] [ENVIRONMENT] -c pipeline_file.txt -r Sample_reference.nii [ANALYSIS_TYPE] [ANALYSIS_TYPE_ADJUSTMENTS] [TPATTERN] [CONVOLVE] [METRIC] [CONTRAST] [VASC_MASK] [NUM_PCS] [KEEPMEAN] [VOXEL_SIZE] [BLURTOFWHM] [DEOBLIQUE] [CONTROL_MOTION_ARTIFACT] [CONTROL_WM_BIAS] [OUPUT_NII_ALSO] --run_locally; status=$?;  kill %1 ; (exit $status)",
     "container-image":{
             "image": "mprati/oppni_cbrain",
             "index": "docker://", 
@@ -13,18 +13,7 @@
     "suggested-resources": {
         "walltime-estimate": 225000
     },
-    "inputs":[{
-            "value-key": "[OPPNI_LOCATION]", 
-            "type": "String", 
-            "optional": true, 
-            "id": "oppni_location", 
-            "value-choices":[
-		"/oppni/cPRONTO/oppni.py"
-	     ],
-            "name": "OPPNI file",
-            "default-value": "/oppni/cPRONTO/oppni.py",
-            "description":"Path to the oppni.py version you are using, example ./oppni/cPRONTO/oppni.py"
-         },
+    "inputs":[
          {
 	    "id": "bids_dir",
 	    "name": "BIDS directory",
@@ -57,12 +46,12 @@
          },
 
           {
-            "command-line-flag": "--analysis_level",
             "value-key": "[ANALYSIS_LEVEL]", 
             "type": "String", 
-            "optional": true, 
+            "optional": false, 
             "id": "analysis_level", 
             "name": "Analysis_Level",
+            "value-choices" : [ "participant", "group", "session" ],
             "description":"Level of analysis that will be performed. Must begin with either 'participant' or 'group'. Multiple participant level analysis can be run independently (in parallel) using the same output_dir."
          },        
          {
@@ -72,6 +61,8 @@
             "optional": true, 
             "id": "participant_label", 
             "name": "Participant_Label",
+            "list" : true,
+            "optional": true,
             "description":"The label(s) of the participant(s) to be analyzed. Label(s) corresponds to sub-<participant_label> from the BIDS spec (does not include 'sub-'). If not provided all subjects will be analyzed. Multiple participants can be specified with a space or comma separated list."
          },        
          {
@@ -279,7 +270,7 @@
             "description": "OPPNI pipeline results.", 
             "path-template": "[OUTPUT_DIR]", 
             "optional": false, 
-            "id": "OPPNI_Results", 
+            "id": "output_dir", 
             "name": "OPPNI Results"
          }],
     "error-codes": [
